@@ -1,0 +1,5 @@
+# Redirect all requests from the apex domain to www
+https://z532.ai/*  https://www.z532.ai/:splat  301!
+
+# Rewrite the root path to fork2.html for the www domain
+/   /z532.html   200
