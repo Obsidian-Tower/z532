@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Z532 | Innovating the Future</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Google Fonts: Poppins for modern typography -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- CSS Styles -->
+    <style>
+      /* 1. Global Styles */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: #121212;
+        color: #e0e0e0;
+        overflow-x: hidden;
+      }
+
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+
+      /* 2. Header Styles */
+      header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 80px;
+        background: rgba(18, 18, 18, 0.8);
+        backdrop-filter: blur(10px);
+        display: flex;
+        align-items: center;
+        padding: 0 50px;
+        z-index: 1000;
+        transition: background 0.3s ease;
+      }
+
+      /* Shrink header on scroll */
+      header.scrolled {
+        height: 60px;
+        padding: 0 30px;
+        background: rgba(18, 18, 18, 0.95);
+      }
+
+      /* 3. Brand Logo */
+      /* 3. Brand Logo with Flicker Effect */
+      .brand {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #00ff84; /* Neon Green */
+        text-shadow: 0 0 10px rgba(0, 255, 132, 0.7),
+          0 0 20px rgba(0, 255, 132, 0.5);
+        position: relative;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        animation: flicker 1.5s infinite alternate; /* Apply flicker effect */
+      }
+
+      .brand:hover {
+        transform: scale(1.05);
+      }
+
+      /* Flicker Animation */
+      @keyframes flicker {
+        0% {
+          opacity: 1;
+          text-shadow: 0 0 10px rgba(0, 255, 132, 0.7),
+            0 0 20px rgba(0, 255, 132, 0.5);
+        }
+        50% {
+          opacity: 0.4;
+          text-shadow: 0 0 5px rgba(0, 255, 132, 0.4),
+            0 0 10px rgba(0, 255, 132, 0.3);
+        }
+        100% {
+          opacity: 1;
+          text-shadow: 0 0 10px rgba(0, 255, 132, 0.7),
+            0 0 20px rgba(0, 255, 132, 0.5);
+        }
+      }
+
+      /* 4. Navigation Menu */
+      nav {
+        margin-left: auto;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 30px;
+      }
+
+      .nav-links a {
+        font-weight: 500;
+        position: relative;
+        padding: 5px 0;
+        transition: color 0.3s ease;
+      }
+
+      .nav-links a::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 0%;
+        height: 2px;
+        background-color: #00ff84;
+        transition: width 0.3s ease;
+      }
+
+      .nav-links a:hover::after {
+        width: 100%;
+      }
+
+      /* 5. Hero Section */
+      .hero {
+        height: 100vh;
+        background: linear-gradient(135deg, #1e1e1e, #2c2c2c);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        position: relative;
+        padding: 0 20px;
+      }
+
+      .hero::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url("https://source.unsplash.com/1600x900/?technology,abstract")
+          center/cover no-repeat;
+        opacity: 0.2;
+        z-index: -1;
+      }
+
+      .hero-title {
+        font-size: 3rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 20px;
+        animation: fadeInDown 1s ease forwards;
+      }
+
+      .hero-subtitle {
+        font-size: 1.2rem;
+        font-weight: 400;
+        color: #b0b0b0;
+        max-width: 800px;
+        margin-bottom: 40px;
+        animation: fadeInUp 1s ease forwards;
+        animation-delay: 0.5s;
+        opacity: 0;
+      }
+
+      .cta-buttons {
+        display: flex;
+        gap: 20px;
+        animation: fadeInUp 1s ease forwards;
+        animation-delay: 1s;
+        opacity: 0;
+      }
+
+      .cta-buttons a {
+        padding: 15px 30px;
+        background-color: #00ff84;
+        color: #121212;
+        border-radius: 30px;
+        font-weight: 600;
+        transition: background-color 0.3s ease, transform 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 255, 132, 0.4);
+      }
+
+      .cta-buttons a:hover {
+        background-color: #00e07f;
+        transform: translateY(-3px);
+      }
+
+      /* 6. Subsidiaries Section */
+      .subsidiaries {
+        padding: 100px 50px;
+        background-color: #1e1e1e;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 40px;
+      }
+
+      .company-logo {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #00ff84;
+        margin-bottom: 20px;
+        text-shadow: 0 0 8px rgba(0, 255, 132, 0.6);
+      }
+      .company-logo img {
+          border-radius: 10px;
+        }
+
+
+      .company-name {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+      }
+
+      .company-desc {
+        font-size: 1rem;
+        color: #b0b0b0;
+      }
+
+      /* 7. Footer */
+      footer {
+        background-color: #1e1e1e;
+        padding: 30px 50px;
+        text-align: center;
+        color: #777777;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .social-icons {
+        display: flex;
+        gap: 20px;
+      }
+
+      .social-icons a {
+        font-size: 1.2rem;
+        color: #00ff84;
+        transition: color 0.3s ease;
+      }
+
+      .social-icons a:hover {
+        color: #00e07f;
+      }
+
+      /* 8. Animations */
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* 9. Responsive Design */
+      @media (max-width: 768px) {
+        header {
+          padding: 0 20px;
+        }
+
+        .nav-links {
+          display: none;
+        }
+
+        .hamburger {
+          display: block;
+          cursor: pointer;
+          font-size: 1.5rem;
+          color: #00ff84;
+        }
+
+        /* Mobile Menu */
+        .mobile-menu {
+          display: none;
+          position: fixed;
+          top: 80px;
+          left: 0;
+          width: 100%;
+          background-color: rgba(18, 18, 18, 0.95);
+          backdrop-filter: blur(10px);
+          padding: 20px 0;
+          z-index: 999;
+          flex-direction: column;
+          align-items: center;
+          gap: 20px;
+        }
+
+        .mobile-menu a {
+          font-size: 1.2rem;
+          color: #e0e0e0;
+          transition: color 0.3s ease;
+        }
+
+        .mobile-menu a:hover {
+          color: #00e07f;
+        }
+
+        /* Show mobile menu when active */
+        .mobile-menu.active {
+          display: flex;
+        }
+      }
+      /* 2. Header Styles */
+      header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 80px;
+        background: rgba(18, 18, 18, 0.8);
+        backdrop-filter: blur(10px);
+        display: flex;
+        align-items: center; /* Align all items vertically in the center */
+        padding: 0 50px;
+        z-index: 1000;
+        transition: background 0.3s ease;
+        justify-content: space-between; /* Space between brand logo and nav links */
+      }
+
+      /* Ensure the hamburger and nav links are properly aligned */
+      nav {
+        display: flex;
+        align-items: center; /* Vertically center the content in the nav */
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 30px;
+      }
+
+      .hamburger {
+        display: none; /* Hide on larger screens */
+        font-size: 1.5rem;
+        color: #00ff84;
+        cursor: pointer;
+        margin-left: 30px; /* Space between hamburger and the rest of the nav */
+      }
+
+      @media (max-width: 768px) {
+        .nav-links {
+          display: none; /* Hide nav links on small screens */
+        }
+
+        .hamburger {
+          display: block; /* Show hamburger icon on mobile screens */
+        }
+      }
+      /* 3. Brand Logo with Flicker Effect */
+      .brand {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #00ff84; /* Neon Green */
+        text-shadow: 0 0 10px rgba(0, 255, 132, 0.7),
+          0 0 20px rgba(0, 255, 132, 0.5);
+        position: relative;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        animation: flicker 5s ease-out forwards; /* Apply flicker effect for 5 seconds */
+      }
+
+      .brand:hover {
+        transform: scale(1.05);
+      }
+
+      /* Flicker Animation */
+      @keyframes flicker {
+        0% {
+          opacity: 1;
+          text-shadow: 0 0 10px rgba(0, 255, 132, 0.7),
+            0 0 20px rgba(0, 255, 132, 0.5);
+        }
+        50% {
+          opacity: 0.4;
+          text-shadow: 0 0 5px rgba(0, 255, 132, 0.4),
+            0 0 10px rgba(0, 255, 132, 0.3);
+        }
+        100% {
+          opacity: 1;
+          text-shadow: 0 0 10px rgba(0, 255, 132, 0.7),
+            0 0 20px rgba(0, 255, 132, 0.5);
+        }
+      }
+      /* 5. Hero Section */
+      .hero {
+        height: 100vh;
+        background: linear-gradient(135deg, #1e1e1e, #2c2c2c);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        position: relative;
+        padding: 0 20px;
+        overflow: hidden;
+        background-size: cover;
+        background-position: center;
+      }
+
+      .hero::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url("https://source.unsplash.com/1600x900/?technology,abstract")
+          center/cover no-repeat;
+        opacity: 0.3;
+        z-index: -1;
+        animation: background-move 10s infinite alternate; /* Add background movement */
+      }
+
+      /* Hero Title */
+      .hero-title {
+        font-size: 4rem; /* Larger font size */
+        font-weight: 900;
+        color: #ffffff;
+        margin-bottom: 20px;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        animation: fadeInDown 1s ease forwards;
+      }
+
+      /* Hero Subtitle */
+      .hero-subtitle {
+        font-size: 1.5rem;
+        font-weight: 400;
+        color: #b0b0b0;
+        max-width: 800px;
+        margin-bottom: 40px;
+        animation: fadeInUp 1s ease forwards;
+        animation-delay: 0.5s;
+        opacity: 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      /* CTA Buttons */
+      .cta-buttons {
+        display: flex;
+        gap: 20px;
+        animation: fadeInUp 1s ease forwards;
+        animation-delay: 1s;
+        opacity: 0;
+      }
+
+      .cta-buttons a {
+        padding: 20px 40px;
+        background-color: #00ff84;
+        color: #121212;
+        border-radius: 50px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        transition: background-color 0.3s ease, transform 0.3s ease;
+        box-shadow: 0 6px 20px rgba(0, 255, 132, 0.6);
+        font-size: 1.2rem;
+        text-decoration: none;
+      }
+
+      .cta-buttons a:hover {
+        background-color: #00e07f;
+        transform: translateY(-5px);
+      }
+
+      @keyframes background-move {
+        0% {
+          background-position: center;
+        }
+        100% {
+          background-position: right center;
+        }
+      }
+
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      /* 5. Hero Section */
+      .hero {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        text-align: center;
+        overflow: hidden;
+      }
+
+      .hero-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #121212;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+      }
+
+      .globe {
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        background-image: url("https://source.unsplash.com/1600x900/?technology,abstract"); /* Use futuristic/tech image */
+        background-size: cover;
+        background-position: center;
+        animation: rotateGlobe 30s infinite linear; /* Infinite rotation */
+      }
+
+      .hero-content {
+        z-index: 10;
+        color: #ffffff;
+        padding: 20px;
+      }
+
+      .hero-title {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: #ffffff;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        text-shadow: 0 0 10px rgba(0, 255, 132, 0.7),
+          0 0 20px rgba(0, 255, 132, 0.5);
+        animation: fadeInDown 1s ease forwards;
+      }
+
+      .cta-buttons {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+      }
+
+      .cta-buttons a {
+        padding: 20px 40px;
+        background-color: #00ff84;
+        color: #121212;
+        border-radius: 50px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        transition: background-color 0.3s ease, transform 0.3s ease;
+        box-shadow: 0 6px 20px rgba(0, 255, 132, 0.6);
+        font-size: 1.2rem;
+        text-decoration: none;
+      }
+
+      .cta-buttons a:hover {
+        background-color: #00e07f;
+        transform: translateY(-5px);
+      }
+
+      /* Rotating Globe Animation */
+      @keyframes rotateGlobe {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Fade-in Effects */
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .company-card {
+        background-color: #2c2c2c;
+        border-radius: 15px;
+        padding: 30px;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+
+        /* Define CSS Variables with default values */
+        --gradient-color: rgba(0, 255, 132, 0.2);
+        --shadow-color: rgba(0, 255, 132, 0.3);
+      }
+
+      .company-card::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+          circle at center,
+          var(--gradient-color),
+          transparent 70%
+        );
+        transform: rotate(45deg);
+        transition: opacity 0.3s ease;
+        opacity: 0;
+      }
+
+      .company-card:hover::before {
+        opacity: 1;
+      }
+
+      .company-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px var(--shadow-color);
+      }
+
+    /* Styling for the tree emoji */
+    .tree {
+      font-size: 10rem; /* Make the tree large */
+      transform: rotate(180deg); /* Rotate the tree upside down */
+    }
+    </style>
+  </head>
+  <body>
+    <!-- 1. Header -->
+    <header id="header">
+      <div class="brand" onclick="scrollToSection('hero')">Z532</div>
+      <nav>
+        <div class="nav-links">
+          <a href="#subsidiaries">Our Subsidiaries</a>
+          <a href="#about">About Us</a>
+          <a href="#contact">Contact</a>
+        </div>
+        <div class="hamburger" onclick="toggleMobileMenu()">☰</div>
+      </nav>
+    </header>
+
+    <!-- 2. Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="#subsidiaries" onclick="toggleMobileMenu()">Our Subsidiaries</a>
+      <a href="#about" onclick="toggleMobileMenu()">About Us</a>
+      <a href="#contact" onclick="toggleMobileMenu()">Contact</a>
+    </div>
+
+    <!-- 3. Hero Section -->
+    <section class="hero" id="hero">
+      <div class="hero-background">
+        <div class="globe"></div>
+      </div>
+      <div class="hero-content">
+        <h1 class="hero-title" style="color: black">
+          Innovating Tomorrow, Today
+        </h1>
+
+        <div class="cta-buttons">
+          <a href="#subsidiaries">Explore Our Subsidiaries</a>
+          <a href="#contact">Get in Touch</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Subsidiaries Section -->
+    <section class="subsidiaries" id="subsidiaries">
+      <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Company Cards</title>
+      <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+
+      <!-- Sudo (Blue) -->
+      <div
+        class="company-card"
+        onclick="window.location.href='sudo 1.html'"
+        style="--gradient-color: rgba(0, 132, 255, 0.2); --shadow-color: rgba(0, 132, 255, 0.3);"
+      >
+        <div class="company-logo">
+          <img
+            src="logos/sudo-icon.jpeg"
+            alt="Sudo Logo"
+            style="width: 120px; height: 120px"
+          />
+        </div>
+        <div class="company-name">Sudo</div>
+        <div class="company-desc">
+          Asteroid relocation using autonomous spacecraft to deliver rare materials
+           to any location in the solar system.
+        </div>
+      </div>
+
+      <!-- Ptarot (Default Green) -->
+      <div
+        class="company-card"
+        onclick="window.location.href='ptarot.html'"
+        style="--gradient-color: rgba(0, 255, 132, 0.2); --shadow-color: rgba(0, 255, 132, 0.3);"
+      >
+        <div class="company-logo">
+          <img
+            src="logos/ptarot-icon.webp"
+            alt="Ptarot Logo"
+            style="width: 120px; height: 120px"
+          />
+        </div>
+        <div class="company-name">Ptarot</div>
+        <div class="company-desc">
+          Solar-powered flying cars and RVs with autonomous navigation,
+          targeting luxury travel and high-end green transportation.
+        </div>
+      </div>
+
+      <!-- AIBARF (Default Green) -->
+      <div
+        class="company-card"
+        onclick="window.location.href='aibarf.html'"
+        style="--gradient-color: rgba(153, 0, 255, 0.2); --shadow-color: rgba(153, 0, 255, 0.3);"
+      >
+        <div class="company-logo">
+          <img
+            src="logos/aibarf-icon.jpeg"
+            alt="AIBARF Logo"
+            style="width: 120px; height: 120px"
+          />
+        </div>
+        <div class="company-name">AIBARF</div>
+        <div class="company-desc">
+          Pioneering the intersection of AI and art, AIBARF creates stunning,
+          generative visuals and evolving designs tailored for immersive
+          experiences and digital storytelling.
+        </div>
+      </div>
+
+      <!--promptmommy (Default Green) -->
+      <div
+        class="company-card"
+        onclick="window.location.href='promptmommy.html'"
+        style="--gradient-color: rgba(153, 0, 255, 0.2); --shadow-color: rgba(153, 0, 255, 0.3);"
+      >
+        <div class="company-logo">
+          <img
+            src="logos/promptmommy-icon.jpeg"
+            alt="promptmommy Logo"
+            style="width: 120px; height: 120px"
+          />
+        </div>
+        <div class="company-name">promptmommmy</div>
+        <div class="company-desc">
+          A prompt enhancement tool used to iteratively address and expand
+          prompts from different view points Building stronger smarter results, 
+          leverage preception embeddings.
+        </div>
+      </div>
+
+ 
+    </section>
+
+    <!-- 6. Contact Section -->
+    <section
+      class="contact"
+      id="contact"
+      style="padding: 80px 50px; background-color: #121212"
+    >
+      <h2 style="text-align: center; font-size: 2rem; margin-bottom: 40px">
+        Get in Touch
+      </h2>
+      <div style="max-width: 600px; margin: 0 auto; text-align: center">
+        <p>Fuck You
+        </p>
+        <a
+          href="mailto:contact@z532.com"
+          style="
+            display: inline-block;
+            margin-top: 20px;
+            padding: 15px 30px;
+            background-color: #00ff84;
+            color: #121212;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 255, 132, 0.4);
+          "
+          >Contact Us</a
+        >
+      </div>
+    </section>
+
+    <!-- 7. Footer -->
+    <footer>
+      <p>&copy; 2024 Z532. All rights reserved.</p>
+      <div class="social-icons">
+        <a href="#" aria-label="Facebook">🔗</a>
+        <a href="#" aria-label="Twitter">🔗</a>
+        <a href="#" aria-label="LinkedIn">🔗</a>
+        <a href="#" aria-label="Instagram">🔗</a>
+      </div>
+    </footer>
+
+    <!-- 8. JavaScript for Interactivity -->
+    <script>
+      // Toggle Mobile Menu
+      function toggleMobileMenu() {
+        const mobileMenu = document.getElementById("mobileMenu");
+        mobileMenu.classList.toggle("active");
+      }
+
+      // Change Header Style on Scroll
+      window.addEventListener("scroll", () => {
+        const header = document.getElementById("header");
+        if (window.scrollY > 50) {
+          header.classList.add("scrolled");
+        } else {
+          header.classList.remove("scrolled");
+        }
+      });
+
+      // Smooth Scroll to Sections
+      function scrollToSection(id) {
+        document.getElementById(id).scrollIntoView({ behavior: "smooth" });
+      }
+    </script>
+  </body>
+</html>
