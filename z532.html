@@ -344,6 +344,21 @@
         font-size: 0.963rem;
         color: #b0b0b0;
       }
+      /* Website link under each company name */
+      .company-website {
+        font-size: 0.875rem;
+        margin: 5px 0 15px;       /* space above & below */
+        color: #b0b0b0;           
+        word-break: break-all;
+      }
+      .company-website a {
+        color: inherit;
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+      .company-website a:hover {
+        color: #ffffff;           /* lighten on hover */
+      }
 
       /* 8. Footer */
       footer {
@@ -557,6 +572,11 @@
           <img src="logos/innoprison-icon3.png" alt="Innoprison Logo" />
         </div>
         <div class="company-name">Innoprison</div>
+        <div class="company-website">
+          <a href="https://www.innoprison.com" target="_blank" rel="noopener">
+            innoprison.com
+          </a>
+        </div>
         <div class="company-desc">
           A system for dissolving punitive prison structures by reframing identity,
           restoring autonomy, and unlocking the lifelong learning potential in every human.
