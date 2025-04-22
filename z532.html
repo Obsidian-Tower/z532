@@ -345,19 +345,22 @@
         color: #b0b0b0;
       }
       /* Website link under each company name */
+      /* Website link under each company name */
       .company-website {
         font-size: 0.875rem;
-        margin: 5px 0 15px;       /* space above & below */
-        color: #b0b0b0;           
+        margin: 1px 0 4eepx;       /* space above & below */
+        color: #b0b0b0;            /* match accent green */
         word-break: break-all;
       }
       .company-website a {
         color: inherit;
         text-decoration: none;
-        transition: color 0.3s ease;
+        transition: color 0.3s ease, font-weight 0.3s ease;
       }
-      .company-website a:hover {
-        color: #ffffff;           /* lighten on hover */
+      /* stronger specificity for hover: white + bold */
+      .company-card .company-website a:hover {
+        color: #ffffff;
+        font-weight: 700;
       }
 
       /* 8. Footer */
@@ -454,6 +457,11 @@
           <img src="logos/sudo-icon.jpeg" alt="Sudo Logo" />
         </div>
         <div class="company-name">Sudo</div>
+        <div class="company-website">
+          <a href="https://www.sudogenesisprotocol.live" target="_blank" rel="noopener">
+            sudogenesisprotocol.live
+          </a>
+        </div>
         <div class="company-desc">
           Asteroid relocation using autonomous spacecraft to deliver rare
           materials to any location in the solar system.
@@ -473,6 +481,11 @@
           <img src="logos/ptarot-icon.webp" alt="Ptarot Logo" />
         </div>
         <div class="company-name">Ptarot</div>
+        <div class="company-website">
+          <a href="https://www.ptarot.co" target="_blank" rel="noopener">
+            ptarot.co
+          </a>
+        </div>
         <div class="company-desc">
           Solar-powered flying cars and RVs with autonomous navigation,
           targeting luxury travel and high-end green transportation.
@@ -492,6 +505,11 @@
           <img src="logos/aibarf-icon.jpeg" alt="AIBARF Logo" />
         </div>
         <div class="company-name">AIBARF</div>
+        <div class="company-website">
+          <a href="https://www.aibarf.com" target="_blank" rel="noopener">
+            aibarf.com
+          </a>
+        </div>
         <div class="company-desc">
           AIBARF lets creators upload themed image sets—3+ related images with one
           description—for public access and contextual discovery.
@@ -511,6 +529,11 @@
           <img src="logos/promptmommy.jpeg" alt="promptmommy Logo" />
         </div>
         <div class="company-name">promptmommmy</div>
+        <div class="company-website">
+          <a href="https://www.promptmommy.com" target="_blank" rel="noopener">
+            promptmommy.com
+          </a>
+        </div>
         <div class="company-desc">
           A prompt enhancement tool used to iteratively expand prompts from
           multiple viewpoints, leveraging advanced perception embeddings.
@@ -531,6 +554,11 @@
           />
         </div>
         <div class="company-name">Nylate</div>
+        <div class="company-website">
+          <a href="https://www.nylate.com" target="_blank" rel="noopener">
+            nylate.com
+          </a>
+        </div>
         <div class="company-desc">
           Bespoke rifles 3D-printed in carbon fiber nylon, electroplated in
           copper or nickel-chromium, designed as functional works of art for
