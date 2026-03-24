@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Ocala Parcel Mapper (Multi-Polygon Fixed)</title>
+  <title>Ocala Parcel Mapper (Clustering Toggle)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
@@ -35,6 +35,34 @@
     button:hover {
       background:#1d4ed8;
     }
+
+    .layer-panel {
+      position:absolute;
+      bottom:10px;
+      right:10px;
+      z-index:10;
+      background:rgba(0,0,0,0.9);
+      color:white;
+      padding:12px;
+      border-radius:10px;
+      max-height:300px;
+      overflow:auto;
+      min-width:180px;
+    }
+
+    .layer-item {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-bottom:6px;
+      font-size:14px;
+    }
+
+    .color-box {
+      width:12px;
+      height:12px;
+      border-radius:3px;
+    }
   </style>
 </head>
 
@@ -46,7 +74,15 @@
   <button onclick="startDrawing()">Start Drawing</button>
   <button onclick="finishDrawing()">Finish Polygon</button>
   <button onclick="clearAll()">Clear All</button>
+  <button onclick="toggleClustering()" id="clusterBtn">Clustering: ON</button>
 </div>
+
+<div class="layer-panel">
+  <b>Areas</b>
+  <div id="layerList"></div>
+</div>
+
+<script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
 
 <script>
 let map;
@@ -56,13 +92,12 @@ let currentPath = [];
 let currentPolyline = null;
 
 let polygons = [];
-let allMarkers = [];
+let clusteringEnabled = true;
 
 function initMap() {
   map = new google.maps.Map(document.getElementById("map"), {
     center: { lat: 29.187, lng: -82.140 },
     zoom: 16,
-    mapTypeId: "roadmap",
     disableDoubleClickZoom: true
   });
 
@@ -73,7 +108,6 @@ function initMap() {
 
     const point = e.latLng;
     currentPath.push(point);
-
     currentPolyline.setPath(currentPath);
   });
 }
@@ -82,9 +116,7 @@ function startDrawing() {
   drawing = true;
   currentPath = [];
 
-  if (currentPolyline) {
-    currentPolyline.setMap(null);
-  }
+  if (currentPolyline) currentPolyline.setMap(null);
 
   currentPolyline = new google.maps.Polyline({
     path: currentPath,
@@ -118,20 +150,62 @@ async function finishDrawing() {
   });
 
   const polyObj = {
+    id: polygons.length + 1,
     polygon,
     path: [...currentPath],
     markers: [],
-    color
+    clusterer: null,
+    color,
+    visible: true
   };
 
   polygons.push(polyObj);
 
-  if (currentPolyline) {
-    currentPolyline.setMap(null);
-    currentPolyline = null;
-  }
+  if (currentPolyline) currentPolyline.setMap(null);
+
+  addLayerUI(polyObj);
 
   await fetchParcelsForPolygon(polyObj);
+}
+
+function addLayerUI(polyObj) {
+  const list = document.getElementById("layerList");
+
+  const item = document.createElement("div");
+  item.className = "layer-item";
+
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.checked = true;
+
+  const colorBox = document.createElement("div");
+  colorBox.className = "color-box";
+  colorBox.style.background = polyObj.color;
+
+  const label = document.createElement("span");
+  label.textContent = `area-${polyObj.id}`;
+
+  checkbox.addEventListener("change", () => {
+    const visible = checkbox.checked;
+
+    polyObj.visible = visible;
+
+    polyObj.polygon.setMap(visible ? map : null);
+
+    if (clusteringEnabled) {
+      if (polyObj.clusterer) {
+        polyObj.clusterer.setMap(visible ? map : null);
+      }
+    } else {
+      polyObj.markers.forEach(m => m.setMap(visible ? map : null));
+    }
+  });
+
+  item.appendChild(checkbox);
+  item.appendChild(colorBox);
+  item.appendChild(label);
+
+  list.appendChild(item);
 }
 
 async function fetchParcelsForPolygon(polyObj) {
@@ -169,7 +243,6 @@ async function fetchParcelsForPolygon(polyObj) {
 
       const marker = new google.maps.Marker({
         position: { lat, lng },
-        map: map,
         icon: {
           path: google.maps.SymbolPath.CIRCLE,
           scale: 6,
@@ -180,25 +253,16 @@ async function fetchParcelsForPolygon(polyObj) {
         }
       });
 
-      const street = attrs.situs_1 || "";
-      const cityZip = attrs.add_3 || "";
-      const owner = attrs.name || "";
-
       const info = new google.maps.InfoWindow({
-        content: `
-          <div style="font-size:14px;">
-            <b>${street}</b><br>
-            ${cityZip}<br><br>
-            <span style="color:#888;">Owner:</span> ${owner}
-          </div>
-        `
+        content: `<b>${attrs.situs_1 || ""}</b><br>${attrs.add_3 || ""}<br><br>Owner: ${attrs.name || ""}`
       });
 
       marker.addListener("click", () => info.open(map, marker));
 
       polyObj.markers.push(marker);
-      allMarkers.push(marker);
     });
+
+    applyClustering(polyObj);
 
   } catch (err) {
     console.error(err);
@@ -206,21 +270,51 @@ async function fetchParcelsForPolygon(polyObj) {
   }
 }
 
+function applyClustering(polyObj) {
+  if (clusteringEnabled) {
+    polyObj.markers.forEach(m => m.setMap(null));
+
+    polyObj.clusterer = new markerClusterer.MarkerClusterer({
+      map,
+      markers: polyObj.markers
+    });
+  } else {
+    if (polyObj.clusterer) {
+      polyObj.clusterer.setMap(null);
+    }
+
+    polyObj.markers.forEach(m => {
+      if (polyObj.visible) m.setMap(map);
+    });
+  }
+}
+
+function toggleClustering() {
+  clusteringEnabled = !clusteringEnabled;
+
+  document.getElementById("clusterBtn").textContent =
+    `Clustering: ${clusteringEnabled ? "ON" : "OFF"}`;
+
+  polygons.forEach(polyObj => {
+    applyClustering(polyObj);
+  });
+}
+
 function clearAll() {
   polygons.forEach(p => {
     p.polygon.setMap(null);
+
+    if (p.clusterer) p.clusterer.setMap(null);
+
     p.markers.forEach(m => m.setMap(null));
   });
 
   polygons = [];
-  allMarkers = [];
+  document.getElementById("layerList").innerHTML = "";
 }
 
 function getRandomColor() {
-  const colors = [
-    "#ef4444", "#22c55e", "#3b82f6",
-    "#f59e0b", "#a855f7", "#14b8a6"
-  ];
+  const colors = ["#ef4444","#22c55e","#3b82f6","#f59e0b","#a855f7","#14b8a6"];
   return colors[Math.floor(Math.random() * colors.length)];
 }
 </script>
