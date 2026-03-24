@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Ocala Parcel Mapper (App Mode)</title>
+  <title>Ocala Parcel Mapper (Fully Fixed Drawing)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     html, body {
       height: 100%;
       margin: 0;
-      overflow: hidden;              /* 🔥 disable scroll */
-      touch-action: none;            /* 🔥 prevent browser gestures */
-      overscroll-behavior: none;     /* 🔥 prevent bounce */
+      overflow: hidden;
+      touch-action: none;
+      overscroll-behavior: none;
       position: fixed;
       width: 100%;
     }
@@ -49,10 +49,6 @@
       border-radius:8px;
       cursor:pointer;
       font-size:14px;
-    }
-
-    button:hover {
-      background:#1d4ed8;
     }
 
     .layer-panel {
@@ -105,7 +101,6 @@
 
 <script>
 let map;
-
 let drawing = false;
 let currentPath = [];
 let currentPolyline = null;
@@ -118,18 +113,33 @@ function initMap() {
     center: { lat: 29.187, lng: -82.140 },
     zoom: 16,
     disableDoubleClickZoom: true,
-    gestureHandling: "greedy" // 🔥 KEY FIX
+    gestureHandling: "greedy"
   });
 
-  map.addListener("click", (e) => {
+  // ✅ DESKTOP
+  map.addListener("mousedown", (e) => {
     if (!drawing) return;
-
-    map.setOptions({ draggable: false });
-
-    const point = e.latLng;
-    currentPath.push(point);
-    currentPolyline.setPath(currentPath);
+    addPoint(e.latLng);
   });
+
+  // ✅ MOBILE
+  map.addListener("touchstart", (e) => {
+    if (!drawing) return;
+    if (e.latLng) addPoint(e.latLng);
+  });
+
+  // 🔥 live preview
+  map.addListener("mousemove", (e) => {
+    if (!drawing || currentPath.length === 0) return;
+
+    const tempPath = [...currentPath, e.latLng];
+    currentPolyline.setPath(tempPath);
+  });
+}
+
+function addPoint(latLng) {
+  currentPath.push(latLng);
+  currentPolyline.setPath(currentPath);
 }
 
 function startDrawing() {
@@ -141,8 +151,9 @@ function startDrawing() {
   currentPolyline = new google.maps.Polyline({
     path: currentPath,
     map: map,
-    strokeColor: "#ffffff",
-    strokeWeight: 2
+    strokeColor: "#ff0000",
+    strokeWeight: 4,
+    strokeOpacity: 1
   });
 
   map.setOptions({ draggableCursor: "crosshair" });
@@ -153,10 +164,7 @@ async function finishDrawing() {
 
   drawing = false;
 
-  map.setOptions({
-    draggableCursor: null,
-    draggable: true
-  });
+  map.setOptions({ draggableCursor: null });
 
   const color = getRandomColor();
 
@@ -184,7 +192,6 @@ async function finishDrawing() {
   if (currentPolyline) currentPolyline.setMap(null);
 
   addLayerUI(polyObj);
-
   await fetchParcelsForPolygon(polyObj);
 }
 
@@ -209,13 +216,10 @@ function addLayerUI(polyObj) {
     const visible = checkbox.checked;
 
     polyObj.visible = visible;
-
     polyObj.polygon.setMap(visible ? map : null);
 
     if (clusteringEnabled) {
-      if (polyObj.clusterer) {
-        polyObj.clusterer.setMap(visible ? map : null);
-      }
+      if (polyObj.clusterer) polyObj.clusterer.setMap(visible ? map : null);
     } else {
       polyObj.markers.forEach(m => m.setMap(visible ? map : null));
     }
@@ -248,64 +252,39 @@ async function fetchParcelsForPolygon(polyObj) {
     returnGeometry: "false"
   });
 
-  try {
-    const res = await fetch(url + "?" + params.toString());
-    const json = await res.json();
+  const res = await fetch(url + "?" + params.toString());
+  const json = await res.json();
 
-    if (!json.features) return;
+  json.features.forEach(f => {
+    const attrs = f.attributes;
 
-    json.features.forEach(f => {
-      const attrs = f.attributes;
-      const lat = attrs.INSIDE_Y;
-      const lng = attrs.INSIDE_X;
-
-      if (!lat || !lng) return;
-
-      const marker = new google.maps.Marker({
-        position: { lat, lng },
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 6,
-          fillColor: polyObj.color,
-          fillOpacity: 1,
-          strokeWeight: 1,
-          strokeColor: "#000"
-        }
-      });
-
-      const info = new google.maps.InfoWindow({
-        content: `<b>${attrs.situs_1 || ""}</b><br>${attrs.add_3 || ""}<br><br>Owner: ${attrs.name || ""}`
-      });
-
-      marker.addListener("click", () => info.open(map, marker));
-
-      polyObj.markers.push(marker);
+    const marker = new google.maps.Marker({
+      position: { lat: attrs.INSIDE_Y, lng: attrs.INSIDE_X },
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 12,
+        fillColor: polyObj.color,
+        fillOpacity: 1,
+        strokeWeight: 1,
+        strokeColor: "#000"
+      }
     });
 
-    applyClustering(polyObj);
+    polyObj.markers.push(marker);
+  });
 
-  } catch (err) {
-    console.error(err);
-    alert("Error loading parcels");
-  }
+  applyClustering(polyObj);
 }
 
 function applyClustering(polyObj) {
   if (clusteringEnabled) {
-    polyObj.markers.forEach(m => m.setMap(null));
-
     polyObj.clusterer = new markerClusterer.MarkerClusterer({
       map,
       markers: polyObj.markers
     });
   } else {
-    if (polyObj.clusterer) {
-      polyObj.clusterer.setMap(null);
-    }
-
-    polyObj.markers.forEach(m => {
-      if (polyObj.visible) m.setMap(map);
-    });
+    polyObj.clusterer?.setMap(null);
+    polyObj.markers.forEach(m => m.setMap(map));
   }
 }
 
@@ -315,17 +294,13 @@ function toggleClustering() {
   document.getElementById("clusterBtn").textContent =
     `Clustering: ${clusteringEnabled ? "ON" : "OFF"}`;
 
-  polygons.forEach(polyObj => {
-    applyClustering(polyObj);
-  });
+  polygons.forEach(applyClustering);
 }
 
 function clearAll() {
   polygons.forEach(p => {
     p.polygon.setMap(null);
-
-    if (p.clusterer) p.clusterer.setMap(null);
-
+    p.clusterer?.setMap(null);
     p.markers.forEach(m => m.setMap(null));
   });
 
