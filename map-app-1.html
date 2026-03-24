@@ -252,39 +252,86 @@ async function fetchParcelsForPolygon(polyObj) {
     returnGeometry: "false"
   });
 
-  const res = await fetch(url + "?" + params.toString());
-  const json = await res.json();
+  try {
+    const res = await fetch(url + "?" + params.toString());
+    const json = await res.json();
 
-  json.features.forEach(f => {
-    const attrs = f.attributes;
+    if (!json.features || json.features.length === 0) {
+      console.log("No parcels found");
+      return;
+    }
 
-    const marker = new google.maps.Marker({
-      position: { lat: attrs.INSIDE_Y, lng: attrs.INSIDE_X },
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 12,
-        fillColor: polyObj.color,
-        fillOpacity: 1,
-        strokeWeight: 1,
-        strokeColor: "#000"
-      }
+    // 🔥 CLEAR OLD DATA (important if re-used)
+    polyObj.markers = [];
+
+    json.features.forEach(f => {
+      const attrs = f.attributes;
+
+      const lat = attrs.INSIDE_Y;
+      const lng = attrs.INSIDE_X;
+
+      if (!lat || !lng) return;
+
+      const marker = new google.maps.Marker({
+        position: { lat, lng },
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 12,
+          fillColor: polyObj.color,
+          fillOpacity: 1,
+          strokeWeight: 1,
+          strokeColor: "#000"
+        }
+      });
+
+      const info = new google.maps.InfoWindow({
+        content: `<b>${attrs.situs_1 || ""}</b><br>${attrs.add_3 || ""}<br><br>Owner: ${attrs.name || ""}`
+      });
+
+      marker.addListener("click", () => info.open(map, marker));
+
+      polyObj.markers.push(marker);
     });
 
-    polyObj.markers.push(marker);
-  });
+    // 🔥 IMPORTANT: always clear previous clusterer
+    if (polyObj.clusterer) {
+      polyObj.clusterer.setMap(null);
+    }
 
-  applyClustering(polyObj);
+    // 🔥 APPLY CLUSTER OR RAW MARKERS
+    if (clusteringEnabled) {
+      polyObj.clusterer = new markerClusterer.MarkerClusterer({
+        map: map,
+        markers: polyObj.markers
+      });
+    } else {
+      polyObj.markers.forEach(m => {
+        if (polyObj.visible) m.setMap(map);
+      });
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("Error loading parcels");
+  }
 }
 
 function applyClustering(polyObj) {
+  if (polyObj.clusterer) {
+    polyObj.clusterer.setMap(null);
+  }
+
   if (clusteringEnabled) {
+    polyObj.markers.forEach(m => m.setMap(null));
+
     polyObj.clusterer = new markerClusterer.MarkerClusterer({
-      map,
+      map: map,
       markers: polyObj.markers
     });
   } else {
-    polyObj.clusterer?.setMap(null);
-    polyObj.markers.forEach(m => m.setMap(map));
+    polyObj.markers.forEach(m => {
+      if (polyObj.visible) m.setMap(map);
+    });
   }
 }
 
