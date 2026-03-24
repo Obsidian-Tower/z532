@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Ocala Parcel Mapper (Fully Fixed Drawing)</title>
+  <title>Ocala Parcel Mapper (Final Integrated)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
@@ -108,6 +108,9 @@ let currentPolyline = null;
 let polygons = [];
 let clusteringEnabled = true;
 
+// 🔥 SINGLE active info window
+let activeInfoWindow = null;
+
 function initMap() {
   map = new google.maps.Map(document.getElementById("map"), {
     center: { lat: 29.187, lng: -82.140 },
@@ -116,24 +119,29 @@ function initMap() {
     gestureHandling: "greedy"
   });
 
-  // ✅ DESKTOP
+  // Drawing input (fast + reliable)
   map.addListener("mousedown", (e) => {
     if (!drawing) return;
     addPoint(e.latLng);
   });
 
-  // ✅ MOBILE
   map.addListener("touchstart", (e) => {
     if (!drawing) return;
     if (e.latLng) addPoint(e.latLng);
   });
 
-  // 🔥 live preview
+  // Live preview line
   map.addListener("mousemove", (e) => {
     if (!drawing || currentPath.length === 0) return;
+    currentPolyline.setPath([...currentPath, e.latLng]);
+  });
 
-    const tempPath = [...currentPath, e.latLng];
-    currentPolyline.setPath(tempPath);
+  // 🔥 Close info window when clicking map
+  map.addListener("click", () => {
+    if (activeInfoWindow) {
+      activeInfoWindow.close();
+      activeInfoWindow = null;
+    }
   });
 }
 
@@ -163,7 +171,6 @@ async function finishDrawing() {
   if (!drawing || currentPath.length < 3) return;
 
   drawing = false;
-
   map.setOptions({ draggableCursor: null });
 
   const color = getRandomColor();
@@ -219,7 +226,7 @@ function addLayerUI(polyObj) {
     polyObj.polygon.setMap(visible ? map : null);
 
     if (clusteringEnabled) {
-      if (polyObj.clusterer) polyObj.clusterer.setMap(visible ? map : null);
+      polyObj.clusterer?.setMap(visible ? map : null);
     } else {
       polyObj.markers.forEach(m => m.setMap(visible ? map : null));
     }
@@ -252,74 +259,48 @@ async function fetchParcelsForPolygon(polyObj) {
     returnGeometry: "false"
   });
 
-  try {
-    const res = await fetch(url + "?" + params.toString());
-    const json = await res.json();
+  const res = await fetch(url + "?" + params.toString());
+  const json = await res.json();
 
-    if (!json.features || json.features.length === 0) {
-      console.log("No parcels found");
-      return;
-    }
+  polyObj.markers = [];
 
-    // 🔥 CLEAR OLD DATA (important if re-used)
-    polyObj.markers = [];
+  json.features.forEach(f => {
+    const attrs = f.attributes;
+    const lat = attrs.INSIDE_Y;
+    const lng = attrs.INSIDE_X;
+    if (!lat || !lng) return;
 
-    json.features.forEach(f => {
-      const attrs = f.attributes;
+    const marker = new google.maps.Marker({
+      position: { lat, lng },
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 12,
+        fillColor: polyObj.color,
+        fillOpacity: 1,
+        strokeWeight: 1,
+        strokeColor: "#000"
+      }
+    });
 
-      const lat = attrs.INSIDE_Y;
-      const lng = attrs.INSIDE_X;
+    // 🔥 SINGLE WINDOW LOGIC
+    marker.addListener("click", () => {
+      if (activeInfoWindow) activeInfoWindow.close();
 
-      if (!lat || !lng) return;
-
-      const marker = new google.maps.Marker({
-        position: { lat, lng },
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 12,
-          fillColor: polyObj.color,
-          fillOpacity: 1,
-          strokeWeight: 1,
-          strokeColor: "#000"
-        }
-      });
-
-      const info = new google.maps.InfoWindow({
+      activeInfoWindow = new google.maps.InfoWindow({
         content: `<b>${attrs.situs_1 || ""}</b><br>${attrs.add_3 || ""}<br><br>Owner: ${attrs.name || ""}`
       });
 
-      marker.addListener("click", () => info.open(map, marker));
-
-      polyObj.markers.push(marker);
+      activeInfoWindow.open(map, marker);
     });
 
-    // 🔥 IMPORTANT: always clear previous clusterer
-    if (polyObj.clusterer) {
-      polyObj.clusterer.setMap(null);
-    }
+    polyObj.markers.push(marker);
+  });
 
-    // 🔥 APPLY CLUSTER OR RAW MARKERS
-    if (clusteringEnabled) {
-      polyObj.clusterer = new markerClusterer.MarkerClusterer({
-        map: map,
-        markers: polyObj.markers
-      });
-    } else {
-      polyObj.markers.forEach(m => {
-        if (polyObj.visible) m.setMap(map);
-      });
-    }
-
-  } catch (err) {
-    console.error(err);
-    alert("Error loading parcels");
-  }
+  applyClustering(polyObj);
 }
 
 function applyClustering(polyObj) {
-  if (polyObj.clusterer) {
-    polyObj.clusterer.setMap(null);
-  }
+  if (polyObj.clusterer) polyObj.clusterer.setMap(null);
 
   if (clusteringEnabled) {
     polyObj.markers.forEach(m => m.setMap(null));
