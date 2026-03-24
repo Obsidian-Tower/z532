@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Ocala Parcel Mapper (Multi-Polygon Fixed)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body { margin:0; font-family:sans-serif; }
+    #map { height:100vh; width:100%; }
+
+    .controls {
+      position:absolute;
+      top:10px;
+      left:50%;
+      transform:translateX(-50%);
+      z-index:10;
+      background:rgba(0,0,0,0.85);
+      padding:12px 18px;
+      border-radius:10px;
+      color:white;
+      display:flex;
+      gap:10px;
+    }
+
+    button {
+      padding:10px 16px;
+      background:#2563eb;
+      color:white;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      font-size:14px;
+    }
+
+    button:hover {
+      background:#1d4ed8;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="map"></div>
+
+<div class="controls">
+  <button onclick="startDrawing()">Start Drawing</button>
+  <button onclick="finishDrawing()">Finish Polygon</button>
+  <button onclick="clearAll()">Clear All</button>
+</div>
+
+<script>
+let map;
+
+let drawing = false;
+let currentPath = [];
+let currentPolyline = null;
+
+let polygons = [];
+let allMarkers = [];
+
+function initMap() {
+  map = new google.maps.Map(document.getElementById("map"), {
+    center: { lat: 29.187, lng: -82.140 },
+    zoom: 16,
+    mapTypeId: "roadmap",
+    disableDoubleClickZoom: true
+  });
+
+  map.addListener("click", (e) => {
+    if (!drawing) return;
+
+    map.setOptions({ draggable: false });
+
+    const point = e.latLng;
+    currentPath.push(point);
+
+    currentPolyline.setPath(currentPath);
+  });
+}
+
+function startDrawing() {
+  drawing = true;
+  currentPath = [];
+
+  if (currentPolyline) {
+    currentPolyline.setMap(null);
+  }
+
+  currentPolyline = new google.maps.Polyline({
+    path: currentPath,
+    map: map,
+    strokeColor: "#ffffff",
+    strokeWeight: 2
+  });
+
+  map.setOptions({ draggableCursor: "crosshair" });
+}
+
+async function finishDrawing() {
+  if (!drawing || currentPath.length < 3) return;
+
+  drawing = false;
+
+  map.setOptions({
+    draggableCursor: null,
+    draggable: true
+  });
+
+  const color = getRandomColor();
+
+  const polygon = new google.maps.Polygon({
+    paths: currentPath,
+    strokeColor: color,
+    fillColor: color,
+    fillOpacity: 0.2,
+    strokeWeight: 2,
+    map: map
+  });
+
+  const polyObj = {
+    polygon,
+    path: [...currentPath],
+    markers: [],
+    color
+  };
+
+  polygons.push(polyObj);
+
+  if (currentPolyline) {
+    currentPolyline.setMap(null);
+    currentPolyline = null;
+  }
+
+  await fetchParcelsForPolygon(polyObj);
+}
+
+async function fetchParcelsForPolygon(polyObj) {
+  const coords = polyObj.path.map(p => [p.lng(), p.lat()]);
+  coords.push(coords[0]);
+
+  const geometry = {
+    rings: [coords],
+    spatialReference: { wkid: 4326 }
+  };
+
+  const url = "https://gis.ocalafl.org/arcgis/rest/services/Public/Parcels/MapServer/0/query";
+
+  const params = new URLSearchParams({
+    f: "json",
+    geometry: JSON.stringify(geometry),
+    geometryType: "esriGeometryPolygon",
+    spatialRel: "esriSpatialRelIntersects",
+    outFields: "*",
+    returnGeometry: "false"
+  });
+
+  try {
+    const res = await fetch(url + "?" + params.toString());
+    const json = await res.json();
+
+    if (!json.features) return;
+
+    json.features.forEach(f => {
+      const attrs = f.attributes;
+      const lat = attrs.INSIDE_Y;
+      const lng = attrs.INSIDE_X;
+
+      if (!lat || !lng) return;
+
+      const marker = new google.maps.Marker({
+        position: { lat, lng },
+        map: map,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 6,
+          fillColor: polyObj.color,
+          fillOpacity: 1,
+          strokeWeight: 1,
+          strokeColor: "#000"
+        }
+      });
+
+      const street = attrs.situs_1 || "";
+      const cityZip = attrs.add_3 || "";
+      const owner = attrs.name || "";
+
+      const info = new google.maps.InfoWindow({
+        content: `
+          <div style="font-size:14px;">
+            <b>${street}</b><br>
+            ${cityZip}<br><br>
+            <span style="color:#888;">Owner:</span> ${owner}
+          </div>
+        `
+      });
+
+      marker.addListener("click", () => info.open(map, marker));
+
+      polyObj.markers.push(marker);
+      allMarkers.push(marker);
+    });
+
+  } catch (err) {
+    console.error(err);
+    alert("Error loading parcels");
+  }
+}
+
+function clearAll() {
+  polygons.forEach(p => {
+    p.polygon.setMap(null);
+    p.markers.forEach(m => m.setMap(null));
+  });
+
+  polygons = [];
+  allMarkers = [];
+}
+
+function getRandomColor() {
+  const colors = [
+    "#ef4444", "#22c55e", "#3b82f6",
+    "#f59e0b", "#a855f7", "#14b8a6"
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+</script>
+
+<script async
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBGFCA70J_CRFo-FxwoSpN3ZjpMicNeVfM&callback=initMap">
+</script>
+
+</body>
+</html>
